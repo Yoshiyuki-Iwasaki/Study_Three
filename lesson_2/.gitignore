@@ -1,0 +1,10 @@
+.DS_Store
+.idea
+*.iml
+node_modules
+*.css.map
+*.js.map
+/Icon
+yarn.lock
+package-lock.json
+/Icon
