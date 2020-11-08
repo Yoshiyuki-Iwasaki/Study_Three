@@ -5,11 +5,23 @@
   <!-- three.jsを読み込む -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/101/three.min.js"></script>
   <!-- index.jsを読み込む -->
+  <script src="orbit.js"></script>
   <script src="index.js"></script>
 </head>
-<body style="margin: 0;">
+<body style="margin: 0; position: relative;">
   <canvas id="myCanvas"></canvas>
 </body>
+
+<style>
+  h1 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    color: #fff;
+    transform: translate(-50%,-50%);
+  }
+</style>
 </html>
 
 
