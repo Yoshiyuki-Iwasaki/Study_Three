@@ -1,6 +1,4 @@
-
-
-window.addEventListener('load', init);
+window.addEventListener("load", init);
 
 function init() {
   // サイズを指定
@@ -9,7 +7,7 @@ function init() {
 
   // レンダラーを作成
   const renderer = new THREE.WebGLRenderer({
-    canvas: document.querySelector('#myCanvas')
+    canvas: document.querySelector("#myCanvas"),
   });
   renderer.setSize(width, height);
 
@@ -17,12 +15,7 @@ function init() {
   const scene = new THREE.Scene();
 
   // カメラを作成
-  const camera = new THREE.PerspectiveCamera(
-    45,
-    width / height,
-    1,
-    10000
-  );
+  const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
   camera.position.set(0, 500, +1000);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -32,27 +25,28 @@ function init() {
 
   // マテリアルを作成
   const material = new THREE.MeshStandardMaterial({
-    color: 0x00FF00,
-    side: THREE.DoubleSide
+    color: 0x00ff00,
+    side: THREE.DoubleSide,
   });
 
   // 平行光源を作成
   const directionalLight = new THREE.DirectionalLight(0xffffff);
   directionalLight.position.set(1, 1, 1);
   scene.add(directionalLight);
+
   // 環境光を作成
   const ambientLight = new THREE.AmbientLight(0x999999);
   scene.add(ambientLight);
 
   // ジオメトリを作成
   const geometryList = [
-    new THREE.SphereGeometry(100,100,100), // 球体
+    new THREE.SphereGeometry(100, 100, 100), // 球体
     new THREE.BoxGeometry(100, 100, 100), // 直方体
     new THREE.PlaneGeometry(100, 100), // 平面
     new THREE.TetrahedronGeometry(100, 0), // カプセル形状
     new THREE.ConeGeometry(100, 100, 32), // 三角錐
     new THREE.CylinderGeometry(50, 50, 100, 32), // 円柱
-    new THREE.TorusGeometry(50, 30, 16, 100) // ドーナツ形状
+    new THREE.TorusGeometry(50, 30, 16, 100), // ドーナツ形状
   ];
 
   geometryList.map((geometry, index) => {
@@ -69,16 +63,16 @@ function init() {
       400 * Math.cos((index / geometryList.length) * Math.PI * 2);
   });
 
-  tick();
+  render();
 
   // 毎フレーム時に実行されるループイベントです
-  function tick() {
+  function render() {
     // メッシュを回転させる
     container.rotation.x += 0.01;
     container.rotation.y += 0.01;
     // レンダリング
     renderer.render(scene, camera);
 
-    requestAnimationFrame(tick);
+    requestAnimationFrame(render);
   }
 }

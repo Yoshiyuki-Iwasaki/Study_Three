@@ -1,5 +1,5 @@
 // ページの読み込みを待つ
-window.addEventListener('load', init);
+window.addEventListener("load", init);
 
 function init() {
   // サイズを指定
@@ -8,21 +8,21 @@ function init() {
 
   // レンダラーを作成
   const renderer = new THREE.WebGLRenderer({
-    canvas: document.querySelector('#myCanvas'),
+    canvas: document.querySelector("#myCanvas"),
     antialias: true,
-    devicePixelRatio: window.devicePixelRatio
+    devicePixelRatio: window.devicePixelRatio,
   });
   renderer.setSize(width, height);
 
   // シーンを作成
   const scene = new THREE.Scene();
-  
+
   // フォグを設定
   scene.fog = new THREE.Fog(0x000000, 50, 2000);
-  
+
   // カメラを作成
   const camera = new THREE.PerspectiveCamera(45, width / height);
-  camera.position.set(0, 0, +1000);
+  camera.position.set(0, 0, +1200);
 
   // // カメラコントローラーを作成
   const controls = new THREE.OrbitControls(camera);
@@ -51,24 +51,23 @@ function init() {
   }
 
   // 光源
-  scene.add(new THREE.DirectionalLight(0xFFFFFF, 2)); // 平行光源
-  scene.add(new THREE.AmbientLight(0xFFFFFF)); // 環境光源
+  scene.add(new THREE.DirectionalLight(0xffffff, 2)); // 平行光源
+  scene.add(new THREE.AmbientLight(0xffffff)); // 環境光源
 
   // 毎フレーム時に実行されるループイベントです
-  tick();
+  render();
 
-  function tick() {
-
+  function render() {
     // カメラコントローラーを更新
     controls.update();
 
     // グループを回す
-    group.rotateY(0.005);
-    group.rotateX(0.005);
+    // group.rotateY(0.005);
+    // group.rotateX(0.005);
 
     // レンダリング
     renderer.render(scene, camera);
 
-    requestAnimationFrame(tick);
+    requestAnimationFrame(render);
   }
 }
