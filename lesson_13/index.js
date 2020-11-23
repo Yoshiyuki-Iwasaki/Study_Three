@@ -26,19 +26,37 @@ function init() {
   controls.enableDamping = true;
   controls.dampingFactor = 0.2;
 
-  // 箱を作成
-  const geometry = new THREE.SphereGeometry(3, 128, 128);
-  // 画像を読み込む
-  const loader = new THREE.TextureLoader();
-  const texture = loader.load("image.jpg");
+  //半径
+  const r = 50;
 
-  // マテリアルにテクスチャーを設定
-  const material = new THREE.MeshNormalMaterial({
-    map: texture,
+  //頂点数
+  const starsNum = 30000;
+
+  // 形状データを作成
+  const geometry = new THREE.Geometry();
+  // 配置する範囲
+  const SIZE = 3000;
+  // 配置する個数
+  const LENGTH = 1000;
+  for (let i = 0; i < LENGTH; i++) {
+    geometry.vertices.push(
+      new THREE.Vector3(
+        SIZE * (Math.random() - 0.5),
+        SIZE * (Math.random() - 0.5),
+        SIZE * (Math.random() - 0.5)
+      )
+    );
+  }
+  // マテリアルを作成
+  const material = new THREE.PointsMaterial({
+    // 一つ一つのサイズ
+    size: 5,
+    // 色
+    color: 0xffffff,
   });
-  const sphere = new THREE.Mesh(geometry, material);
-  scene.add(sphere);
 
+  const mesh = new THREE.Points(geometry, material);
+  scene.add(mesh);
   // 平行光源
   const light = new THREE.DirectionalLight(0xffffff);
   light.position.set(1, 1, 1);
@@ -54,17 +72,6 @@ function init() {
     const time = performance.now() * 0.001;
     const r = 1;
     const k = 1;
-
-    for (let i = 0; i < sphere.geometry.vertices.length; i++) {
-      //Vector3形式で頂点を取得
-      const p = sphere.geometry.vertices[i];
-      p.normalize().multiplyScalar(
-        r + 0.3 * noise.perlin3(p.x * k + time, p.y * k, p.z * k)
-      );
-    }
-
-    sphere.geometry.verticesNeedUpdate = true;
-    sphere.geometry.computeVertexNormals();
 
     // レンダリング
     renderer.render(scene, camera);

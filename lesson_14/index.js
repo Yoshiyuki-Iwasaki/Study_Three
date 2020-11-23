@@ -17,7 +17,7 @@ function init() {
 
   // カメラを作成
   const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-  camera.position.set(0, 0, +5);
+  camera.position.set(0, 0, +500);
 
   // // カメラコントローラーを作成
   const controls = new THREE.OrbitControls(camera);
@@ -26,19 +26,44 @@ function init() {
   controls.enableDamping = true;
   controls.dampingFactor = 0.2;
 
-  // 箱を作成
-  const geometry = new THREE.SphereGeometry(3, 128, 128);
-  // 画像を読み込む
-  const loader = new THREE.TextureLoader();
-  const texture = loader.load("image.jpg");
+  //半径
+  const r = 150;
 
-  // マテリアルにテクスチャーを設定
-  const material = new THREE.MeshNormalMaterial({
-    map: texture,
-  });
-  const sphere = new THREE.Mesh(geometry, material);
-  scene.add(sphere);
+  //頂点数
+  const starsNum = 0000;
 
+  // 1辺あたりに配置するオブジェクトの個数
+  const CELL_NUM = 25;
+
+  // 空のジオメトリを作成
+  const geometry = new THREE.Geometry();
+
+  // Box
+  for (let i = 0; i < CELL_NUM; i++) {
+    for (let j = 0; j < CELL_NUM; j++) {
+      for (let k = 0; k < CELL_NUM; k++) {
+        // 立方体個別の要素を作成
+        const sampleGeometry = new THREE.BoxGeometry(5, 5, 5);
+
+        // 座標調整の行列を作成
+        const matrix = new THREE.Matrix4();
+        matrix.makeTranslation(
+          10 * (i - CELL_NUM / 2),
+          10 * (j - CELL_NUM / 2),
+          10 * (k - CELL_NUM / 2)
+        );
+
+        // ジオメトリをマージ（結合）
+        geometry.merge(sampleGeometry, matrix);
+      }
+    }
+  }
+
+  // マテリアルを作成
+  const material = new THREE.MeshNormalMaterial();
+  // メッシュを作成
+  const mesh = new THREE.Mesh(geometry, material);
+  scene.add(mesh);
   // 平行光源
   const light = new THREE.DirectionalLight(0xffffff);
   light.position.set(1, 1, 1);
@@ -49,22 +74,13 @@ function init() {
   render();
 
   function render() {
+    mesh.rotation.x += 0.01;
+    mesh.rotation.y += 0.01;
     // カメラコントローラーを更新
     controls.update();
     const time = performance.now() * 0.001;
     const r = 1;
     const k = 1;
-
-    for (let i = 0; i < sphere.geometry.vertices.length; i++) {
-      //Vector3形式で頂点を取得
-      const p = sphere.geometry.vertices[i];
-      p.normalize().multiplyScalar(
-        r + 0.3 * noise.perlin3(p.x * k + time, p.y * k, p.z * k)
-      );
-    }
-
-    sphere.geometry.verticesNeedUpdate = true;
-    sphere.geometry.computeVertexNormals();
 
     // レンダリング
     renderer.render(scene, camera);
