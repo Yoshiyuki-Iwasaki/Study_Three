@@ -71,6 +71,10 @@
             type: "t",
             value: new THREE.TextureLoader().load("icon.jpg"),
           },
+          u_texture02: {
+            type: "t",
+            value: new THREE.TextureLoader().load("icon.jpg"),
+          },
           uFixAspect: {
             value: this.h / this.w, // 逆アスペクト
           },
@@ -110,8 +114,19 @@
         render();
       }
 
+      container.addEventListener(
+        "mousemove",
+        function () {
+          // uniforms.u_texture.value = new THREE.TextureLoader().load(
+          //   "image.jpg"
+          // );
+          uniforms.u_time.value += 0.05;
+          console.log("test");
+        },
+        false
+      );
+
       function render() {
-        uniforms.u_time.value += 0.05;
         renderer.render(scene, camera);
       }
     </script>
