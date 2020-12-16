@@ -28,14 +28,9 @@ function init() {
 
   // 箱を作成
   const geometry = new THREE.SphereGeometry(3, 128, 128);
-  // 画像を読み込む
-  const loader = new THREE.TextureLoader();
-  const texture = loader.load("image.jpg");
 
   // マテリアルにテクスチャーを設定
-  const material = new THREE.MeshNormalMaterial({
-    map: texture,
-  });
+  const material = new THREE.MeshNormalMaterial();
   const sphere = new THREE.Mesh(geometry, material);
   scene.add(sphere);
 
@@ -51,7 +46,7 @@ function init() {
   function render() {
     // カメラコントローラーを更新
     controls.update();
-    const time = performance.now() * 0.001;
+    const time = performance.now() * 0.0005;
     const r = 1;
     const k = 1;
 
@@ -59,7 +54,7 @@ function init() {
       //Vector3形式で頂点を取得
       const p = sphere.geometry.vertices[i];
       p.normalize().multiplyScalar(
-        r + 0.3 * noise.perlin3(p.x * k + time, p.y * k, p.z * k)
+        r + 1 * noise.perlin3(p.x * k + time, p.y * k, p.z * k)
       );
     }
 

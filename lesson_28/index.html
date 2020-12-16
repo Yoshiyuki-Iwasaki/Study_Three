@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- three.jsを読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/101/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>
+    <!-- index.jsを読み込む -->
+    <!-- <script src="index.js"></script> -->
+  </head>
+  <body>
+    <div id="container"></div>
+    <script id="vertexShader" type="x-shader/x-vertex">
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+      precision mediump float;
+      uniform sampler2D u_texture;
+      uniform sampler2D u_texture02;
+      uniform sampler2D u_texture03;
+      uniform float u_dispFactor;
+      uniform vec2 u_resolution;
+      uniform vec2 imageResolution;
+      uniform float u_time;
+      // vertexShaderで処理されて渡されるテクスチャ座標
+      varying vec2 vUv;
+
+      mat2 scale(vec2 _scale){
+        return mat2(_scale.x,0.0,0.0,_scale.y);
+      }
+
+      mat2 rotate2d(float _angle){
+          return mat2(cos(_angle),-sin(_angle),sin(_angle),cos(_angle));
+      }
+
+      void main()
+      {
+
+        vec2 ratio = vec2(
+          min((u_resolution.x / u_resolution.y) / (imageResolution.x / imageResolution.y), 1.0),
+          min((u_resolution.y / u_resolution.x) / (imageResolution.y / imageResolution.x), 1.0)
+        );
+
+        vec2 uv = vec2(
+          vUv.x * ratio.x + (1.0 - ratio.x) * 0.5,
+          vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
+        );
+
+        vec4 disp = texture2D(u_texture03, uv);
+
+        vec2 distortedPosition2 = uv + rotate2d(0.0) * vec2(disp.r,disp.g) * (1.0 - u_dispFactor) * 0.1;
+
+        vec4 _texture1 = texture2D(u_texture, uv);
+        vec4 _texture2 = texture2D(u_texture02, distortedPosition2);
+        vec4 color = mix(_texture1, _texture2, u_dispFactor);
+        gl_FragColor = color;
+      }
+    </script>
+    <script>
+      var container;
+      var camera, scene, renderer;
+      var uniforms;
+
+      init();
+      animate();
+
+      function init() {
+        camera = new THREE.Camera();
+        camera.position.z = 1;
+
+        scene = new THREE.Scene();
+
+        var geometry = new THREE.PlaneBufferGeometry(2, 2);
+
+        uniforms = {
+          u_time: { type: "f", value: 0.0 },
+          u_resolution: { type: "v2", value: new THREE.Vector2() },
+          u_mouse: { type: "v2", value: new THREE.Vector2() },
+          u_texture: {
+            type: "t",
+            value: new THREE.TextureLoader().load("icon.jpg"),
+          },
+          u_texture02: {
+            type: "t",
+            value: new THREE.TextureLoader().load("icon02.jpg"),
+          },
+          u_texture03: {
+            type: "t",
+            value: new THREE.TextureLoader().load("./displacement/3.jpg"),
+          },
+          u_dispFactor: { type: "f", value: 0.0 },
+          u_imageResolution: {
+            type: "v2",
+            value: new THREE.Vector2(1024, 512),
+          },
+        };
+
+        var material = new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: document.getElementById("vertexShader").textContent,
+          fragmentShader: document.getElementById("fragmentShader").textContent,
+        });
+
+        var mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // サイズを取得
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        container = document.getElementById("container");
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+
+        onWindowResize();
+        window.addEventListener("resize", onWindowResize, false);
+      }
+
+      function onWindowResize(event) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        uniforms.u_resolution.value.x = renderer.domElement.width;
+        uniforms.u_resolution.value.y = renderer.domElement.height;
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        render();
+      }
+
+      container.addEventListener(
+        "mouseenter",
+        function () {
+          TweenMax.to(uniforms.u_dispFactor, 1.5, {
+            value: 1,
+          });
+        },
+        false
+      );
+
+      container.addEventListener(
+        "mouseleave",
+        function () {
+          TweenMax.to(uniforms.u_dispFactor, 1.5, {
+            value: 0,
+          });
+        },
+        false
+      );
+
+      function render() {
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</html>

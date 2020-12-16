@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- three.jsを読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/101/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>
+    <!-- index.jsを読み込む -->
+    <!-- <script src="index.js"></script> -->
+  </head>
+  <body>
+    <div id="container"></div>
+    <script id="vertexShader" type="x-shader/x-vertex">
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+      precision mediump float;
+      uniform vec2 u_resolution;
+      uniform vec2 u_mouse;
+      uniform float u_time;
+      // vertexShaderで処理されて渡されるテクスチャ座標
+      varying vec2 vUv;
+
+      float w = u_resolution.x;
+      float h = u_resolution.y;
+
+      float ball(vec2 p, float fx, float fy, float ax, float ay) {
+          vec2 r = vec2(p.x + sin(u_time * fx) * ax, p.y + cos(u_time * fy) * ay);
+          return 0.09 / length(r);
+      }
+
+      void main(void) {
+          vec2 q = gl_FragCoord.xy / u_resolution.xy;
+          vec2 p = -1.0 + 2.0 * q;
+          p.x	*= u_resolution.x / u_resolution.y;
+
+          float col = 0.0;
+          col += ball(p, 1.0, 2.0, 0.1, 0.2);
+          col += ball(p, 1.5, 2.5, 0.2, 0.3);
+          col += ball(p, 2.0, 3.0, 0.3, 0.4);
+          col += ball(p, 2.5, 3.5, 0.4, 0.5);
+          col += ball(p, 3.0, 4.0, 0.5, 0.6);
+          col += ball(p, 1.5, 0.5, 0.6, 0.7);
+          col += ball(p, 0.1, .5, 0.6, 0.7);
+
+          col = max(mod(col, 0.4), min(col, 2.0));
+
+          gl_FragColor = vec4(col * 0.8, col * 0.3, col * 0.3, 1.0);
+      }
+    </script>
+    <script>
+      var container;
+      var camera, scene, renderer;
+      var uniforms;
+
+      init();
+      animate();
+
+      function init() {
+        camera = new THREE.Camera();
+        camera.position.z = 1;
+
+        scene = new THREE.Scene();
+
+        var geometry = new THREE.PlaneBufferGeometry(2, 2);
+
+        uniforms = {
+          u_time: { type: "f", value: 1.0 },
+          u_resolution: { type: "v2", value: new THREE.Vector2() },
+          u_mouse: { type: "v2", value: new THREE.Vector2() },
+          u_texture: {
+            type: "t",
+            value: new THREE.TextureLoader().load("icon.jpg"),
+          },
+          u_texture02: {
+            type: "t",
+            value: new THREE.TextureLoader().load("icon02.jpg"),
+          },
+          u_texture03: {
+            type: "t",
+            value: new THREE.TextureLoader().load("./displacement/3.jpg"),
+          },
+          u_dispFactor: { type: "f", value: 0.0 },
+          u_imageResolution: {
+            type: "v2",
+            value: new THREE.Vector2(1024, 512),
+          },
+        };
+
+        var material = new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: document.getElementById("vertexShader").textContent,
+          fragmentShader: document.getElementById("fragmentShader").textContent,
+        });
+
+        var mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // サイズを取得
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        container = document.getElementById("container");
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+
+        onWindowResize();
+        window.addEventListener("resize", onWindowResize, false);
+      }
+
+      function onWindowResize(event) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        uniforms.u_resolution.value.x = renderer.domElement.width;
+        uniforms.u_resolution.value.y = renderer.domElement.height;
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        render();
+      }
+
+      container.addEventListener(
+        "mouseenter",
+        function () {
+          TweenMax.to(uniforms.u_dispFactor, 1.5, {
+            value: 1,
+          });
+        },
+        false
+      );
+
+      container.addEventListener(
+        "mouseleave",
+        function () {
+          TweenMax.to(uniforms.u_dispFactor, 1.5, {
+            value: 0,
+          });
+        },
+        false
+      );
+
+      function render() {
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</html>

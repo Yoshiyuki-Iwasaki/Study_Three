@@ -10,6 +10,7 @@ import Page07 from "./07_shader_texture";
 import Page08 from "./08_shader_texture";
 import Page09 from "./09_shader_texture";
 import Page10 from "./10_shader_texture";
+import Page11 from "./11_shader_texture";
 
 // ドキュメントを読み込んだらページごとの処理を実行
 document.addEventListener("DOMContentLoaded", () => {
@@ -28,4 +29,5 @@ document.addEventListener("DOMContentLoaded", () => {
   else if (path === "08_shader_texture") new Page08();
   else if (path === "09_shader_texture") new Page09();
   else if (path === "10_shader_texture") new Page10();
+  else if (path === "11_shader_texture") new Page11();
 });

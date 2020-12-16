@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- three.jsを読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/101/three.min.js"></script>
+    <!-- index.jsを読み込む -->
+    <!-- <script src="index.js"></script> -->
+  </head>
+  <body>
+    <div id="container"></div>
+    <script id="vertexShader" type="x-shader/x-vertex">
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+      precision mediump float;
+      uniform sampler2D u_texture;
+      uniform vec2 u_resolution;
+      uniform float u_time;
+      // vertexShaderで処理されて渡されるテクスチャ座標
+      varying vec2 vUv;
+
+      float amount = 0.6;
+
+      float random2d(vec2 coord){
+        return fract(sin(dot(coord.xy, vec2(12.9898,78.233))) * 43758.5453);
+      }
+
+      void main()
+      {
+        vec2 coord = gl_FragCoord.xy / u_resolution;
+        vec3 color = vec3(0.0);
+
+        // テクスチャの色情報をそのままピクセルに塗る
+        vec4 image = texture2D( u_texture, coord);
+
+        float noise = (random2d(coord) - 0.5) * sin(u_time*0.3);
+
+        image.r += noise;
+        image.g += noise;
+        image.b += noise;
+
+        gl_FragColor = image;
+      }
+    </script>
+    <script>
+      var container;
+      var camera, scene, renderer;
+      var uniforms;
+
+      init();
+      animate();
+
+      function init() {
+        camera = new THREE.Camera();
+        camera.position.z = 1;
+
+        scene = new THREE.Scene();
+
+        var geometry = new THREE.PlaneBufferGeometry(2, 2);
+
+        uniforms = {
+          u_time: { type: "f", value: 1.0 },
+          u_resolution: { type: "v2", value: new THREE.Vector2() },
+          u_mouse: { type: "v2", value: new THREE.Vector2() },
+          u_texture: {
+            type: "t",
+            value: new THREE.TextureLoader().load("icon.jpg"),
+          },
+          uFixAspect: {
+            value: this.h / this.w, // 逆アスペクト
+          },
+        };
+
+        var material = new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: document.getElementById("vertexShader").textContent,
+          fragmentShader: document.getElementById("fragmentShader").textContent,
+        });
+
+        var mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // サイズを取得
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        container = document.getElementById("container");
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+
+        onWindowResize();
+        window.addEventListener("resize", onWindowResize, false);
+      }
+
+      function onWindowResize(event) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        uniforms.u_resolution.value.x = renderer.domElement.width;
+        uniforms.u_resolution.value.y = renderer.domElement.height;
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        render();
+      }
+
+      function render() {
+        uniforms.u_time.value += 0.05;
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</html>

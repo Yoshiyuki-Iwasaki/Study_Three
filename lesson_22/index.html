@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- three.jsを読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/101/three.min.js"></script>
+    <!-- index.jsを読み込む -->
+    <!-- <script src="index.js"></script> -->
+  </head>
+  <body>
+    <div id="container"></div>
+    <script id="vertexShader" type="x-shader/x-vertex">
+      void main() {
+          gl_Position = vec4( position, 1.0 );
+      }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+      precision mediump float;
+      uniform float u_time;
+      uniform vec2  u_mouse;
+      uniform vec2  u_resolution;
+
+      const float PI = 3.14159265;
+      const float angle = 60.0;
+      const float fov = angle * 0.5 * PI / 180.0;
+
+      vec3  cPos = vec3(0.0, 0.0, 2.0);
+      const float sphereSize = 1.0;
+      const vec3 lightDir = vec3(-0.577, 0.577, 0.577);
+
+      mat2 rotate(float _angle){
+          return mat2(cos(_angle),-sin(_angle),
+                      sin(_angle),cos(_angle));
+      }
+
+      vec3 trans(vec3 p){
+          return mod(p, 4.0) - 2.0;
+      }
+
+      float distanceFunc(vec3 p){
+          return length(trans(p)) - sphereSize;
+      }
+
+      vec3 getNormal(vec3 p){
+          float d = 0.0001;
+          return normalize(vec3(
+              distanceFunc(p + vec3(  d, 0.0, 0.0)) - distanceFunc(p + vec3( -d, 0.0, 0.0)),
+              distanceFunc(p + vec3(0.0,   d, 0.0)) - distanceFunc(p + vec3(0.0,  -d, 0.0)),
+              distanceFunc(p + vec3(0.0, 0.0,   d)) - distanceFunc(p + vec3(0.0, 0.0,  -d))
+          ));
+      }
+
+      void main(void){
+          // fragment position
+          vec2 p = (gl_FragCoord.xy * 2.0 - u_resolution) / min(u_resolution.x, u_resolution.y);
+          p = rotate( sin(u_time*0.2) ) * p;
+
+          // ray
+          vec3 ray = normalize(vec3(sin(fov) * p.x, sin(fov) * p.y, -cos(fov)));
+
+          // marching loop
+          float distance = 0.0;
+          float rLen = 0.0;
+          vec3  rPos = cPos;
+          for(int i = 0; i < 100; i++){
+              distance = distanceFunc(rPos);
+              rLen += distance;
+              rPos = cPos + ray * rLen;
+          }
+
+          // hit check
+          if(abs(distance) < 0.001){
+              vec3 normal = getNormal(rPos);
+              float diff = clamp(dot(lightDir, normal), 0.1, 1.0);
+              gl_FragColor = vec4(normal, 1.0);
+          }else{
+              gl_FragColor = vec4(vec3(0.0), 1.0);
+          }
+      }
+    </script>
+    <script>
+      var container;
+      var camera, scene, renderer;
+      var uniforms;
+
+      init();
+      animate();
+
+      function init() {
+        camera = new THREE.Camera();
+        camera.position.z = 1;
+
+        scene = new THREE.Scene();
+
+        var geometry = new THREE.PlaneBufferGeometry(2, 2);
+
+        uniforms = {
+          u_time: { type: "f", value: 1.0 },
+          u_resolution: { type: "v2", value: new THREE.Vector2() },
+          u_mouse: { type: "v2", value: new THREE.Vector2() },
+        };
+
+        var material = new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: document.getElementById("vertexShader").textContent,
+          fragmentShader: document.getElementById("fragmentShader").textContent,
+        });
+
+        var mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // サイズを取得
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        container = document.getElementById("container");
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+
+        onWindowResize();
+        window.addEventListener("resize", onWindowResize, false);
+      }
+
+      function onWindowResize(event) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        uniforms.u_resolution.value.x = renderer.domElement.width;
+        uniforms.u_resolution.value.y = renderer.domElement.height;
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        render();
+      }
+
+      function render() {
+        uniforms.u_time.value += 0.05;
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+</html>

@@ -27,10 +27,10 @@ function init() {
   controls.dampingFactor = 0.2;
 
   //半径
-  const r = 50;
+  const r = 100;
 
   //頂点数
-  const starsNum = 30000;
+  const starsNum = 50000;
 
   // 形状データを作成
   const geometry = new THREE.Geometry();
