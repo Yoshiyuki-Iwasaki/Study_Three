@@ -54,7 +54,13 @@ function init() {
       //Vector3形式で頂点を取得
       const p = sphere.geometry.vertices[i];
       p.normalize().multiplyScalar(
-        r + 1 * noise.perlin3(p.x * k + time, p.y * k, p.z * k)
+        r +
+          0.3 *
+            noise.perlin3(
+              p.x * k + time * 0.5,
+              p.y * k + time * 0.5,
+              p.z * k + time * 0.5
+            )
       );
     }
 
