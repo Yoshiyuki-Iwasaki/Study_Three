@@ -5,11 +5,98 @@
     <!-- three.jsを読み込む -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/101/three.min.js"></script>
     <!-- index.jsを読み込む -->
-    <script src="perlin.js"></script>
-    <script src="orbit.js"></script>
-    <script src="index.js"></script>
+    <!-- <script src="index.js"></script> -->
   </head>
-  <body style="margin: 0">
-    <canvas id="myCanvas"></canvas>
+  <body>
+    <div id="container"></div>
+    <script id="vertexShader" type="x-shader/x-vertex">
+      uniform float u_time;
+      void main() {
+          vec3 pos = position;
+
+          pos.y = ( pos.y * 0.5 ) + sin( pos.x * u_time) * 0.5;// 縦を半分のサイズにして、sinでy座標を歪ませる
+
+          gl_Position = vec4( pos, 1.0 );
+      }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+      void main() {
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+      }
+    </script>
+    <script>
+      var container;
+      var camera, scene, renderer;
+      var uniforms;
+
+      init();
+      animate();
+
+      function init() {
+        camera = new THREE.Camera();
+        camera.position.z = 1;
+
+        scene = new THREE.Scene();
+
+        var geometry = new THREE.PlaneGeometry(2, 2, 10, 10);
+
+        uniforms = {
+          u_time: { type: "f", value: 1.0 },
+          u_resolution: { type: "v2", value: new THREE.Vector2() },
+          u_mouse: { type: "v2", value: new THREE.Vector2() },
+        };
+
+        var material = new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: document.getElementById("vertexShader").textContent,
+          fragmentShader: document.getElementById("fragmentShader").textContent,
+          wireframe: true,
+        });
+
+        var mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // サイズを取得
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        container = document.getElementById("container");
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
+
+        onWindowResize();
+        window.addEventListener("resize", onWindowResize, false);
+
+        document.onmousemove = function (e) {
+          uniforms.u_mouse.value.x = e.pageX;
+          uniforms.u_mouse.value.y = e.pageY;
+          console.log("test");
+        };
+      }
+
+      function onWindowResize(event) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        uniforms.u_resolution.value.x = renderer.domElement.width;
+        uniforms.u_resolution.value.y = renderer.domElement.height;
+        console.log("test2");
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        render();
+      }
+
+      function render() {
+        uniforms.u_time.value += 0.05;
+        renderer.render(scene, camera);
+      }
+    </script>
   </body>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
 </html>

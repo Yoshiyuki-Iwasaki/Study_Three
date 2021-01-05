@@ -1,13 +1,33 @@
-window.addEventListener("DOMContentLoaded", init);
+window.addEventListener('DOMContentLoaded', init);
 
-function init() {
+// 初期化のために実行
+onResize();
+// リサイズイベント発生時に実行
+window.addEventListener('resize', onResize);
+
+function onResize() {
   // サイズを取得
   const width = window.innerWidth;
+  
   const height = window.innerHeight;
+  
+  // レンダラーのサイズを調整する
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(width, height);
+
+  // カメラのアスペクト比を正す
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
+
+function init() {
+    // サイズを取得
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
   // レンダラーを作成
   const renderer = new THREE.WebGLRenderer({
-    canvas: document.querySelector("#myCanvas"),
+    canvas: document.querySelector('#myCanvas')
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(width, height);
@@ -17,64 +37,32 @@ function init() {
 
   // カメラを作成
   const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-  camera.position.set(0, 0, +1400);
+  camera.position.set(0, 0, +1000);
 
-  // // カメラコントローラーを作成
-  const controls = new THREE.OrbitControls(camera);
+  // 箱を作成
+  const geometry = new THREE.BoxGeometry(300, 300, 300);
+  const material = new THREE.MeshStandardMaterial({color: 0x00ffff});
+  const box = new THREE.Mesh(geometry, material);
+  scene.add(box);
 
-  // // 滑らかにカメラコントローラーを制御する
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.2;
-
-  // 1辺あたりに配置するオブジェクトの個数
-  const CELL_NUM = 25;
-
-  // 空のジオメトリを作成
-  const geometry = new THREE.Geometry();
-
-  // Box
-  for (let i = 0; i < CELL_NUM; i++) {
-    for (let j = 0; j < CELL_NUM; j++) {
-      for (let k = 0; k < CELL_NUM; k++) {
-        // 立方体個別の要素を作成
-        const sampleGeometry = new THREE.SphereGeometry(5, 5, 5);
-
-        // 座標調整の行列を作成
-        const matrix = new THREE.Matrix4();
-        matrix.makeTranslation(
-          15 * (i - CELL_NUM / 2),
-          15 * (j - CELL_NUM / 2),
-          15 * (k - CELL_NUM / 2)
-        );
-
-        // ジオメトリをマージ（結合）
-        geometry.merge(sampleGeometry, matrix);
-      }
-    }
-  }
-
-  // マテリアルを作成
-  const material = new THREE.MeshNormalMaterial();
-  // メッシュを作成
-  const mesh = new THREE.Mesh(geometry, material);
-  scene.add(mesh);
   // 平行光源
-  const light = new THREE.DirectionalLight(0xffffff);
+  const light = new THREE.DirectionalLight(0xFFFFFF);
+  light.intensity = 2; // 光の強さを倍に
   light.position.set(1, 1, 1);
   // シーンに追加
   scene.add(light);
 
   // 初回実行
-  render();
+  tick();
 
-  function render() {
-    mesh.rotation.x += 0.005;
-    mesh.rotation.y += 0.005;
-    // カメラコントローラーを更新
-    controls.update();
+  function tick() {
+    requestAnimationFrame(tick);
+
+    // 箱を回転させる
+    box.rotation.x += 0.01;
+    box.rotation.y += 0.01;
 
     // レンダリング
     renderer.render(scene, camera);
-    requestAnimationFrame(render);
   }
 }

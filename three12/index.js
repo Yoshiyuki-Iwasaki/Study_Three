@@ -17,7 +17,7 @@ function init() {
 
   // カメラを作成
   const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-  camera.position.set(0, 0, +500);
+  camera.position.set(0, 0, +1400);
 
   // // カメラコントローラーを作成
   const controls = new THREE.OrbitControls(camera);
@@ -25,12 +25,6 @@ function init() {
   // // 滑らかにカメラコントローラーを制御する
   controls.enableDamping = true;
   controls.dampingFactor = 0.2;
-
-  //半径
-  const r = 150;
-
-  //頂点数
-  const starsNum = 0000;
 
   // 1辺あたりに配置するオブジェクトの個数
   const CELL_NUM = 25;
@@ -43,14 +37,14 @@ function init() {
     for (let j = 0; j < CELL_NUM; j++) {
       for (let k = 0; k < CELL_NUM; k++) {
         // 立方体個別の要素を作成
-        const sampleGeometry = new THREE.BoxGeometry(5, 5, 5);
+        const sampleGeometry = new THREE.SphereGeometry(5, 5, 5);
 
         // 座標調整の行列を作成
         const matrix = new THREE.Matrix4();
         matrix.makeTranslation(
-          10 * (i - CELL_NUM / 2),
-          10 * (j - CELL_NUM / 2),
-          10 * (k - CELL_NUM / 2)
+          15 * (i - CELL_NUM / 2),
+          15 * (j - CELL_NUM / 2),
+          15 * (k - CELL_NUM / 2)
         );
 
         // ジオメトリをマージ（結合）
@@ -74,8 +68,8 @@ function init() {
   render();
 
   function render() {
-    mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.01;
+    mesh.rotation.x += 0.005;
+    mesh.rotation.y += 0.005;
     // カメラコントローラーを更新
     controls.update();
 
