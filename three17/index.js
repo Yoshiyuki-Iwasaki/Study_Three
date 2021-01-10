@@ -1,68 +1,66 @@
-window.addEventListener('DOMContentLoaded', init);
+import fragment from "./glsl/fragment.glsl";
+import vertex from "./glsl/vertex.glsl";
 
-// 初期化のために実行
-onResize();
-// リサイズイベント発生時に実行
-window.addEventListener('resize', onResize);
+var container;
+var camera, scene, renderer;
+var uniforms;
 
-function onResize() {
-  // サイズを取得
-  const width = window.innerWidth;
-  
-  const height = window.innerHeight;
-  
-  // レンダラーのサイズを調整する
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(width, height);
-
-  // カメラのアスペクト比を正す
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
-}
+init();
+animate();
 
 function init() {
-    // サイズを取得
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+  camera = new THREE.Camera();
+  camera.position.z = 1;
 
-  // レンダラーを作成
-  const renderer = new THREE.WebGLRenderer({
-    canvas: document.querySelector('#myCanvas')
+  scene = new THREE.Scene();
+
+  var geometry = new THREE.PlaneBufferGeometry(2, 2);
+
+  uniforms = {
+    u_time: { type: "f", value: 1.0 },
+    u_resolution: { type: "v2", value: new THREE.Vector2() },
+    u_mouse: { type: "v2", value: new THREE.Vector2() },
+    u_texture: {
+      type: "t",
+      value: new THREE.TextureLoader().load("icon.jpg"),
+    },
+  };
+
+  var material = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: vertex,
+    fragmentShader: fragment,
   });
+
+  var mesh = new THREE.Mesh(geometry, material);
+  scene.add(mesh);
+
+  // サイズを取得
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  container = document.getElementById("container");
+
+  renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(width, height);
+  container.appendChild(renderer.domElement);
 
-  // シーンを作成
-  const scene = new THREE.Scene();
+  onWindowResize();
+  window.addEventListener("resize", onWindowResize, false);
+}
 
-  // カメラを作成
-  const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-  camera.position.set(0, 0, +1000);
+function onWindowResize(event) {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  uniforms.u_resolution.value.x = renderer.domElement.width;
+  uniforms.u_resolution.value.y = renderer.domElement.height;
+}
 
-  // 箱を作成
-  const geometry = new THREE.BoxGeometry(300, 300, 300);
-  const material = new THREE.MeshStandardMaterial({color: 0x00ffff});
-  const box = new THREE.Mesh(geometry, material);
-  scene.add(box);
+function animate() {
+  requestAnimationFrame(animate);
+  render();
+}
 
-  // 平行光源
-  const light = new THREE.DirectionalLight(0xFFFFFF);
-  light.intensity = 2; // 光の強さを倍に
-  light.position.set(1, 1, 1);
-  // シーンに追加
-  scene.add(light);
-
-  // 初回実行
-  tick();
-
-  function tick() {
-    requestAnimationFrame(tick);
-
-    // 箱を回転させる
-    box.rotation.x += 0.01;
-    box.rotation.y += 0.01;
-
-    // レンダリング
-    renderer.render(scene, camera);
-  }
+function render() {
+  uniforms.u_time.value += 0.05;
+  renderer.render(scene, camera);
 }
