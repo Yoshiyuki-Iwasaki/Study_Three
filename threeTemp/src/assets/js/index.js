@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import fox from "../img/image.jpg";
+import image from "../img/image.jpg";
 import fragment from "../../glsl/fragment.glsl";
 import vertex from "../../glsl/vertex.glsl";
 import * as dat from "dat.gui";
